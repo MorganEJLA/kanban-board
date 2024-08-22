@@ -58,8 +58,7 @@ function updateSavedColumns() {
 
 // Filter Array to remove empty values
 function filterArray(array) {
-  const filteredArray = array.filter((item) => item !== null);
-  return filteredArray;
+  return array.filter((item) => item !== null && item.trim() !== "");
 }
 
 // Create DOM Elements for each list item
@@ -118,9 +117,9 @@ function updateItem(id, column) {
   const selectedColumn = listColumns[column].children;
   if (!dragging) {
     if (!selectedColumn[id].textContent) {
-      delete selectedArray[id];
+      selectedArray.splice(id, 1);
     } else {
-      selectedArray[id] = selectedColumn[id].textContent;
+      selectedArray[id] = selectedColumn[id].textContent.trim();
     }
     updateDOM();
   }
@@ -128,11 +127,13 @@ function updateItem(id, column) {
 
 // Add to Column List, Reset Textbox
 function addToColumn(column) {
-  const itemText = addItems[column].textContent;
-  const selectedArray = listArrays[column];
-  selectedArray.push(itemText);
-  addItems[column].textContent = "";
-  updateDOM(column);
+  const itemText = addItems[column].textContent.trim();
+  if (itemText) {
+    const selectedArray = listArrays[column];
+    selectedArray.push(itemText);
+    addItems[column].textContent = "";
+    updateDOM();
+  }
 }
 
 // Show Add Item Input Box
@@ -153,16 +154,16 @@ function hideInputBox(column) {
 // Allows arrays to reflect Drag and Drop items
 function rebuildArrays() {
   backlogListArray = Array.from(backlogListEl.children).map(
-    (i) => i.textContent
+    (i) => i.textContent.trim()
   );
-  progressListArray = Array.from(backlogListEl.children).map(
-    (i) => i.textContent
+  progressListArray = Array.from(progressListEl.children).map(
+    (i) => i.textContent.trim()
   );
-  completeListArray = Array.from(backlogListEl.children).map(
-    (i) => i.textContent
+  completeListArray = Array.from(completeListEl.children).map(
+    (i) => i.textContent.trim()
   );
-  onHoldListArray = Array.from(backlogListEl.children).map(
-    (i) => i.textContent
+  onHoldListArray = Array.from(onHoldListEl.children).map(
+    (i) => i.textContent.trim()
   );
 
   updateDOM();
@@ -194,10 +195,11 @@ function drop(e) {
     column.classList.remove("over");
   });
   // Add item to Column
-  parent.appendChild(draggedItem);
-  // Dragging complete
-  dragging = false;
-  rebuildArrays();
+  if (draggedItem && parent) {
+    parent.appendChild(draggedItem);
+    dragging = false;
+    rebuildArrays();
+  }
 }
 
 // On Load
