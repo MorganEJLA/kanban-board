@@ -237,5 +237,18 @@ function drop(e) {
   }
 }
 
-// On Load
-updateDOM();
+// Reset Demo button
+document.getElementById("resetDemo").addEventListener("click", () => {
+  // Clear SugarTrack keys
+  [
+    "backlogItems",
+    "progressItems",
+    "completeItems",
+    "onHoldItems",
+    "sugartrackVersion",
+  ].forEach((k) => localStorage.removeItem(k));
+
+  // Reseed with defaults and redraw
+  seedDefaults();
+  updateDOM();
+});

@@ -334,3 +334,21 @@ ul {
     margin: 10px;
   }
 }
+.reset-demo {
+  display: inline-block;
+  margin: 10px 0 20px;
+  padding: 8px 16px;
+  background-color: #1b9b9d; 
+  color: white;
+  font-family: Quicksand, sans-serif;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.reset-demo:hover {
+  background-color: #14807b;
+}
