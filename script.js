@@ -32,10 +32,23 @@ function getSavedColumns() {
     completeListArray = JSON.parse(localStorage.completeItems);
     onHoldListArray = JSON.parse(localStorage.onHoldItems);
   } else {
-    backlogListArray = ["Release the course", "Sit back and relax"];
-    progressListArray = ["Work on projects", "Listen to music"];
-    completeListArray = ["Being cool", "Getting stuff done"];
-    onHoldListArray = ["Being uncool"];
+    backlogListArray = [
+      "Design layout for Passport page (grid of saved desserts)",
+
+      "Define data structure for saved passport items (image, name, origin)",
+    ];
+    progressListArray = [
+      "Build dessert search bar component",
+      "Implement category filtering (cakes, pies, street food)",
+      "Style navigation menu with responsive layout",
+      "Test dessert detail card display",
+    ];
+    completeListArray = [
+      "Set up React project with Vite",
+      "Configure Firebase authentication",
+      "Deploy landing page to Netlify",
+    ];
+    onHoldListArray = ["Add unique “stamp” icons for each dessert."];
   }
 }
 
@@ -153,17 +166,17 @@ function hideInputBox(column) {
 
 // Allows arrays to reflect Drag and Drop items
 function rebuildArrays() {
-  backlogListArray = Array.from(backlogListEl.children).map(
-    (i) => i.textContent.trim()
+  backlogListArray = Array.from(backlogListEl.children).map((i) =>
+    i.textContent.trim()
   );
-  progressListArray = Array.from(progressListEl.children).map(
-    (i) => i.textContent.trim()
+  progressListArray = Array.from(progressListEl.children).map((i) =>
+    i.textContent.trim()
   );
-  completeListArray = Array.from(completeListEl.children).map(
-    (i) => i.textContent.trim()
+  completeListArray = Array.from(completeListEl.children).map((i) =>
+    i.textContent.trim()
   );
-  onHoldListArray = Array.from(onHoldListEl.children).map(
-    (i) => i.textContent.trim()
+  onHoldListArray = Array.from(onHoldListEl.children).map((i) =>
+    i.textContent.trim()
   );
 
   updateDOM();
