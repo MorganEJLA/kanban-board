@@ -6,10 +6,10 @@ html {
 }
 
 :root {
-  --column-1: #3B4CCA
-  --column-2: #8DD7BF
-  --column-3: #E76F51
-  --column-4: #3D2B1F
+  --column-1: #3b4cca;
+  --column-2: #8dd7bf;
+  --column-3: #e76f51;
+  --column-4: #3d2b1f;
 }
 
 body {
