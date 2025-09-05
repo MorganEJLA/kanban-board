@@ -2,28 +2,17 @@ const addBtns = document.querySelectorAll(".add-btn:not(.solid)");
 const saveItemBtns = document.querySelectorAll(".solid");
 const addItemContainers = document.querySelectorAll(".add-container");
 const addItems = document.querySelectorAll(".add-item");
-// Item Lists
-// Item Lists
-const listColumns = document.querySelectorAll(".drag-item-list");
-const backlogListEl = document.getElementById("backlog-list");
-const progressListEl = document.getElementById("progress-list");
-const completeListEl = document.getElementById("complete-list");
-const onHoldListEl = document.getElementById("on-hold-list");
 
-// Items
-let updatedOnLoad = false;
+const STORAGE_VERSION = "v3";
+const LS_KEYS = [
+  "backlogItems",
+  "progressItems",
+  "completeItems",
+  "onHoldItems",
+  "sugartrackVersion",
+];
+const FORCE_RESEED = false;
 
-// Initialize Arrays
-let backlogListArray = [];
-let progressListArray = [];
-let completeListArray = [];
-let onHoldListArray = [];
-let listArrays = [];
-
-// --- VERSIONING ---
-const STORAGE_VERSION = "v2"; // bump this whenever you change defaults
-
-// Default values for new version
 const DEFAULT_BACKLOG = [
   "Design layout for Passport page (grid of saved desserts)",
   "Define data structure for saved passport items (image, name, origin)",
@@ -41,23 +30,47 @@ const DEFAULT_COMPLETE = [
 ];
 const DEFAULT_ONHOLD = ["Add unique 'stamp' icons for each dessert."];
 
-// --- STORAGE HELPERS ---
+function logLS(where) {
+  try {
+    console.log(
+      `[SugarTrack:${where}] version=`,
+      localStorage.getItem("sugartrackVersion"),
+      "backlog:",
+      JSON.parse(localStorage.getItem("backlogItems") || "[]").length,
+      "progress:",
+      JSON.parse(localStorage.getItem("progressItems") || "[]").length,
+      "complete:",
+      JSON.parse(localStorage.getItem("completeItems") || "[]").length,
+      "onHold:",
+      JSON.parse(localStorage.getItem("onHoldItems") || "[]").length
+    );
+  } catch {}
+}
 
 function seedDefaults() {
   backlogListArray = [...DEFAULT_BACKLOG];
   progressListArray = [...DEFAULT_PROGRESS];
   completeListArray = [...DEFAULT_COMPLETE];
   onHoldListArray = [...DEFAULT_ONHOLD];
-  updateSavedColumns();
+  updateSavedColumns(); // writes arrays + version
   localStorage.setItem("sugartrackVersion", STORAGE_VERSION);
+  logLS("seeded");
 }
 
-// Get Arrays from localStorage if available, or seed defaults
 function getSavedColumns() {
+  if (FORCE_RESEED) {
+    LS_KEYS.forEach((k) => localStorage.removeItem(k));
+  }
   const savedVersion = localStorage.getItem("sugartrackVersion");
 
-  // If first load or version mismatch, reseed defaults
   if (savedVersion !== STORAGE_VERSION) {
+    console.log(
+      "[SugarTrack] Version mismatch (have:",
+      savedVersion,
+      "need:",
+      STORAGE_VERSION,
+      ") → seeding defaults"
+    );
     seedDefaults();
     return;
   }
@@ -67,13 +80,14 @@ function getSavedColumns() {
     progressListArray = JSON.parse(localStorage.getItem("progressItems")) || [];
     completeListArray = JSON.parse(localStorage.getItem("completeItems")) || [];
     onHoldListArray = JSON.parse(localStorage.getItem("onHoldItems")) || [];
-  } catch (err) {
-    console.error("Corrupt localStorage, reseeding defaults:", err);
+    logLS("loaded");
+  } catch (e) {
+    console.warn("[SugarTrack] Bad localStorage, reseeding:", e);
+    LS_KEYS.forEach((k) => localStorage.removeItem(k));
     seedDefaults();
   }
 }
 
-// Save Arrays to localStorage
 function updateSavedColumns() {
   listArrays = [
     backlogListArray,
@@ -81,8 +95,8 @@ function updateSavedColumns() {
     completeListArray,
     onHoldListArray,
   ];
-  const arrayNames = ["backlog", "progress", "complete", "onHold"];
-  arrayNames.forEach((name, i) => {
+  const names = ["backlog", "progress", "complete", "onHold"];
+  names.forEach((name, i) => {
     localStorage.setItem(`${name}Items`, JSON.stringify(listArrays[i]));
   });
   localStorage.setItem("sugartrackVersion", STORAGE_VERSION);
@@ -106,34 +120,30 @@ function createItemEl(columnEl, column, item, index) {
   columnEl.appendChild(listEl);
 }
 
-// Update Columns in DOM - Reset HTML, Filter Array, Update localStorage
+// Update Columns, Update localStorage
 function updateDOM() {
   if (!updatedOnLoad) {
     getSavedColumns();
   }
 
-  // Backlog Column
   backlogListEl.textContent = "";
   backlogListArray.forEach((item, index) =>
     createItemEl(backlogListEl, 0, item, index)
   );
   backlogListArray = filterArray(backlogListArray);
 
-  // Progress Column
   progressListEl.textContent = "";
   progressListArray.forEach((item, index) =>
     createItemEl(progressListEl, 1, item, index)
   );
   progressListArray = filterArray(progressListArray);
 
-  // Complete Column
   completeListEl.textContent = "";
   completeListArray.forEach((item, index) =>
     createItemEl(completeListEl, 2, item, index)
   );
   completeListArray = filterArray(completeListArray);
 
-  // On Hold Column
   onHoldListEl.textContent = "";
   onHoldListArray.forEach((item, index) =>
     createItemEl(onHoldListEl, 3, item, index)
@@ -144,7 +154,7 @@ function updateDOM() {
   updateSavedColumns();
 }
 
-// Update Item - Delete if necessary, or update Array value
+// Update Item
 function updateItem(id, column) {
   const selectedArray = listArrays[column];
   const selectedColumn = listColumns[column].children;
@@ -158,7 +168,7 @@ function updateItem(id, column) {
   }
 }
 
-// Add to Column List, Reset Textbox
+// Reset Textbox
 function addToColumn(column) {
   const itemText = addItems[column].textContent.trim();
   if (itemText) {
@@ -169,16 +179,12 @@ function addToColumn(column) {
   }
 }
 
-// Drag + Drop logic stays the same...
-
-// Show Add Item Input Box
 function showInputBox(column) {
   addBtns[column].style.visibility = "hidden";
   saveItemBtns[column].style.display = "flex";
   addItemContainers[column].style.display = "flex";
 }
 
-// Hide Item Input Box
 function hideInputBox(column) {
   addBtns[column].style.visibility = "visible";
   saveItemBtns[column].style.display = "none";
@@ -186,7 +192,6 @@ function hideInputBox(column) {
   addToColumn(column);
 }
 
-// Allows arrays to reflect Drag and Drop items
 function rebuildArrays() {
   backlogListArray = Array.from(backlogListEl.children).map((i) =>
     i.textContent.trim()
@@ -204,24 +209,23 @@ function rebuildArrays() {
   updateDOM();
 }
 
-// When Item Enters Column Area
 function dragEnter(column) {
   listColumns[column].classList.add("over");
   currentColumn = column;
 }
 
-// When Item Starts Dragging
+// Drag
 function drag(e) {
   draggedItem = e.target;
   dragging = true;
 }
 
-// Column Allows for Item to Drop
+// Drop Item
 function allowDrop(e) {
   e.preventDefault();
 }
 
-// Dropping Item in Column
+// Dropping Item
 function drop(e) {
   e.preventDefault();
   const parent = listColumns[currentColumn];
@@ -229,7 +233,7 @@ function drop(e) {
   listColumns.forEach((column) => {
     column.classList.remove("over");
   });
-  // Add item to Column
+  // Add item
   if (draggedItem && parent) {
     parent.appendChild(draggedItem);
     dragging = false;
@@ -239,7 +243,7 @@ function drop(e) {
 
 // Reset Demo button
 document.getElementById("resetDemo").addEventListener("click", () => {
-  // Clear SugarTrack keys
+  // Clear
   [
     "backlogItems",
     "progressItems",
