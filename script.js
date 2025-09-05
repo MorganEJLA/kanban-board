@@ -3,6 +3,7 @@ const saveItemBtns = document.querySelectorAll(".solid");
 const addItemContainers = document.querySelectorAll(".add-container");
 const addItems = document.querySelectorAll(".add-item");
 // Item Lists
+// Item Lists
 const listColumns = document.querySelectorAll(".drag-item-list");
 const backlogListEl = document.getElementById("backlog-list");
 const progressListEl = document.getElementById("progress-list");
@@ -19,40 +20,60 @@ let completeListArray = [];
 let onHoldListArray = [];
 let listArrays = [];
 
-// Drag Functionality
-let draggedItem;
-let dragging = false;
-let currentColumn;
+// --- VERSIONING ---
+const STORAGE_VERSION = "v2"; // bump this whenever you change defaults
 
-// Get Arrays from localStorage if available, set default values if not
+// Default values for new version
+const DEFAULT_BACKLOG = [
+  "Design layout for Passport page (grid of saved desserts)",
+  "Define data structure for saved passport items (image, name, origin)",
+];
+const DEFAULT_PROGRESS = [
+  "Build dessert search bar component",
+  "Implement category filtering (cakes, pies, street food)",
+  "Style navigation menu with responsive layout",
+  "Test dessert detail card display",
+];
+const DEFAULT_COMPLETE = [
+  "Set up React project with Vite",
+  "Configure Firebase authentication",
+  "Deploy landing page to Netlify",
+];
+const DEFAULT_ONHOLD = ["Add unique 'stamp' icons for each dessert."];
+
+// --- STORAGE HELPERS ---
+
+function seedDefaults() {
+  backlogListArray = [...DEFAULT_BACKLOG];
+  progressListArray = [...DEFAULT_PROGRESS];
+  completeListArray = [...DEFAULT_COMPLETE];
+  onHoldListArray = [...DEFAULT_ONHOLD];
+  updateSavedColumns();
+  localStorage.setItem("sugartrackVersion", STORAGE_VERSION);
+}
+
+// Get Arrays from localStorage if available, or seed defaults
 function getSavedColumns() {
-  if (localStorage.getItem("backlogItems")) {
-    backlogListArray = JSON.parse(localStorage.backlogItems);
-    progressListArray = JSON.parse(localStorage.progressItems);
-    completeListArray = JSON.parse(localStorage.completeItems);
-    onHoldListArray = JSON.parse(localStorage.onHoldItems);
-  } else {
-    backlogListArray = [
-      "Design layout for Passport page (grid of saved desserts)",
+  const savedVersion = localStorage.getItem("sugartrackVersion");
 
-      "Define data structure for saved passport items (image, name, origin)",
-    ];
-    progressListArray = [
-      "Build dessert search bar component",
-      "Implement category filtering (cakes, pies, street food)",
-      "Style navigation menu with responsive layout",
-      "Test dessert detail card display",
-    ];
-    completeListArray = [
-      "Set up React project with Vite",
-      "Configure Firebase authentication",
-      "Deploy landing page to Netlify",
-    ];
-    onHoldListArray = ["Add unique “stamp” icons for each dessert."];
+  // If first load or version mismatch, reseed defaults
+  if (savedVersion !== STORAGE_VERSION) {
+    seedDefaults();
+    return;
+  }
+
+  try {
+    backlogListArray = JSON.parse(localStorage.getItem("backlogItems")) || [];
+    progressListArray = JSON.parse(localStorage.getItem("progressItems")) || [];
+    completeListArray = JSON.parse(localStorage.getItem("completeItems")) || [];
+    onHoldListArray = JSON.parse(localStorage.getItem("onHoldItems")) || [];
+  } catch (err) {
+    console.error("Corrupt localStorage, reseeding defaults:", err);
+    seedDefaults();
   }
 }
 
-// Set localStorage Arrays
+// Save Arrays to localStorage
 function updateSavedColumns() {
   listArrays = [
     backlogListArray,
@@ -61,12 +82,10 @@ function updateSavedColumns() {
     onHoldListArray,
   ];
   const arrayNames = ["backlog", "progress", "complete", "onHold"];
-  arrayNames.forEach((arrayName, index) => {
-    localStorage.setItem(
-      `${arrayName}Items`,
-      JSON.stringify(listArrays[index])
-    );
+  arrayNames.forEach((name, i) => {
+    localStorage.setItem(`${name}Items`, JSON.stringify(listArrays[i]));
   });
+  localStorage.setItem("sugartrackVersion", STORAGE_VERSION);
 }
 
 // Filter Array to remove empty values
@@ -76,7 +95,6 @@ function filterArray(array) {
 
 // Create DOM Elements for each list item
 function createItemEl(columnEl, column, item, index) {
-  // List Item
   const listEl = document.createElement("li");
   listEl.textContent = item;
   listEl.id = index;
@@ -85,41 +103,43 @@ function createItemEl(columnEl, column, item, index) {
   listEl.setAttribute("onfocusout", `updateItem(${index}, ${column})`);
   listEl.setAttribute("ondragstart", "drag(event)");
   listEl.contentEditable = true;
-  // Append
   columnEl.appendChild(listEl);
 }
 
 // Update Columns in DOM - Reset HTML, Filter Array, Update localStorage
 function updateDOM() {
-  // Check localStorage once
   if (!updatedOnLoad) {
     getSavedColumns();
   }
+
   // Backlog Column
   backlogListEl.textContent = "";
-  backlogListArray.forEach((backlogItem, index) => {
-    createItemEl(backlogListEl, 0, backlogItem, index);
-  });
+  backlogListArray.forEach((item, index) =>
+    createItemEl(backlogListEl, 0, item, index)
+  );
   backlogListArray = filterArray(backlogListArray);
+
   // Progress Column
   progressListEl.textContent = "";
-  progressListArray.forEach((progressItem, index) => {
-    createItemEl(progressListEl, 1, progressItem, index);
-  });
+  progressListArray.forEach((item, index) =>
+    createItemEl(progressListEl, 1, item, index)
+  );
   progressListArray = filterArray(progressListArray);
+
   // Complete Column
   completeListEl.textContent = "";
-  completeListArray.forEach((completeItem, index) => {
-    createItemEl(completeListEl, 2, completeItem, index);
-  });
+  completeListArray.forEach((item, index) =>
+    createItemEl(completeListEl, 2, item, index)
+  );
   completeListArray = filterArray(completeListArray);
+
   // On Hold Column
   onHoldListEl.textContent = "";
-  onHoldListArray.forEach((onHoldItem, index) => {
-    createItemEl(onHoldListEl, 3, onHoldItem, index);
-  });
+  onHoldListArray.forEach((item, index) =>
+    createItemEl(onHoldListEl, 3, item, index)
+  );
   onHoldListArray = filterArray(onHoldListArray);
-  // Don't run more than once, Update Local Storage
+
   updatedOnLoad = true;
   updateSavedColumns();
 }
@@ -148,6 +168,8 @@ function addToColumn(column) {
     updateDOM();
   }
 }
+
+// Drag + Drop logic stays the same...
 
 // Show Add Item Input Box
 function showInputBox(column) {
