@@ -14,7 +14,7 @@ html {
 
 body {
   margin: 0;
-  background: url("./azores-bg.jpg");
+  background: url("./sugar-cookie.jpg");
   background-size: cover;
   background-position: 50% 60%;
   background-attachment: fixed;
@@ -338,7 +338,7 @@ ul {
   display: inline-block;
   margin: 10px 0 20px;
   padding: 8px 16px;
-  background-color: #1b9b9d; 
+  background-color: #1b9b9d;
   color: white;
   font-family: Quicksand, sans-serif;
   font-size: 0.9rem;
