@@ -14,11 +14,11 @@ html {
 
 body {
   margin: 0;
-  background: url("./sugar-cookie.jpg");
+  background: url("./azores-bg.jpg");
   background-size: cover;
   background-position: 50% 60%;
   background-attachment: fixed;
-  color: rgb(107, 102, 102);
+  color: white;
   font-family: Quicksand, sans-serif;
   overflow-y: hidden;
 }
